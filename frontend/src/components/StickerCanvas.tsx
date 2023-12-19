@@ -1,31 +1,26 @@
 
-import { Stage, Layer, Star, Text, Image, Transformer } from 'react-konva';
+import { Stage, Layer, Image, Transformer } from 'react-konva';
 import Konva from 'konva';
 import useImage from 'use-image';
-import React, { useEffect, useRef, useState } from 'react';
-import logo from './logo.svg';
+import { useEffect, useRef, useState } from 'react';
 import "../App.css";
 
 
 
 
-const createSVGImageElement = () => {
-
-}
 
 interface StickerProps {
 	stickerData: StickerData,
-	onStickerSelect: (el: any) => void
+	onStickerSelect?: (el: any) => void,
+	applyStickerTransform?: (stickerData: StickerData) => void
 }
 
-const Sticker = ({ stickerData, onStickerSelect }: StickerProps) => {
+const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: StickerProps) => {
 	const imageRef = useRef<any>(null);
 	const [image] = useImage(stickerData.url, "anonymous");
-	// const [image] = useImage('https://konvajs.org/assets/lion.png', "anonymous");
 
 	useEffect(() => {
 		if (image) {
-			console.log(imageRef)
 			// you many need to reapply cache on some props changes like shadow, stroke, etc.
 			imageRef.current!.cache();
 		}
@@ -39,32 +34,10 @@ const Sticker = ({ stickerData, onStickerSelect }: StickerProps) => {
 		var ctx = canvas.getContext('2d')!;
 
 		var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		console.log(imageData)
-		console.log(canvas.height, canvas.width)
 		var nPixels = imageData.data.length;
-		console.log(nPixels)
 		for (var i = 3; i < nPixels; i += 4) {
 			if (imageData.data[i] > 0) {
 				imageData.data[i] = 255;
-			}
-		}
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		ctx.putImageData(imageData, 0, 0);
-		return canvas;
-	}
-
-	function allNonTransparentGrayScale(canvas: HTMLCanvasElement, grayscaleValue: number) {
-		const ctx = canvas.getContext('2d')!;
-
-		const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		const nPixels = imageData.data.length;
-
-		for (let i = 3; i < nPixels; i += 4) {
-			if (imageData.data[i] > 0) {
-				imageData.data[i] = 255;
-				imageData.data[i - 1] = grayscaleValue;
-				imageData.data[i - 2] = grayscaleValue;
-				imageData.data[i - 3] = grayscaleValue;
 			}
 		}
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -153,9 +126,9 @@ const Sticker = ({ stickerData, onStickerSelect }: StickerProps) => {
 		removeTransparency(tempCanvas);
 		const outerBorderWithDropShadow = getSmoothedColouredShadow(canvas, tempCanvas, 2, "grey", false)
 
-		// for (let i = 3; i < imageData.data.length; i += 1) {
-		// 	imageData.data[i] = outerBorderWithDropShadow.data[i]
-		// }
+		for (let i = 3; i < imageData.data.length; i += 1) {
+			imageData.data[i] = innerBorder.data[i]
+		}
 
 		for (var i = 3; i < imageData.data.length; i += 4) {
 			if (imageData.data[i] !== 0) {
@@ -256,69 +229,43 @@ const Sticker = ({ stickerData, onStickerSelect }: StickerProps) => {
 	}
 
 	return (
-		<Image
-			{...stickerData}
-			ref={imageRef}
-			image={image}
-			onClick={onStickerSelect}
-			onTap={onStickerSelect}
-			draggable
-			// stroke={'black'}
-			// strokeWidth={5}
-			filters={[stickerBorder]}
-		/>
+		!stickerData.editable ?
+			<Image
+				{...stickerData}
+				ref={imageRef}
+				image={image}
+				filters={[stickerBorder]}
+			/> :
+			<Image
+				{...stickerData}
+				ref={imageRef}
+				image={image}
+				filters={[stickerBorder]}
+				draggable
+				onClick={onStickerSelect}
+				onTap={onStickerSelect}
+				onDragEnd={(e) => {
+					applyStickerTransform!({
+						...stickerData,
+						x: e.target.x(),
+						y: e.target.y(),
+					});
+				}}
+				onTransformEnd={(e) => {
+					const node = imageRef.current;
+					applyStickerTransform!({
+						...stickerData,
+						x: node.x(),
+						y: node.y(),
+						scaleX: node.scaleX(),
+						scaleY: node.scaleY(),
+						rotation: node.rotation()
+					});
+				}}
+			/>
 	)
 }
 
-// const Sticker = ({stickerData, setStickerRef}: StickerProps) => {
-// 	const {
-// 		x,
-// 		y,
-// 		selected
-// 	} = stickerData
-// 	const [image] = useImage('https://konvajs.org/assets/lion.png');
-
-// 	return (
-// 		<>
-// 			<Image
-// 				x={x}
-// 				y={y}
-// 				ref={setStickerRef}
-// 				image={image}
-// 				draggable
-// 			// onDragEnd={(e) => {
-// 			// 	onChange({
-// 			// 		...shapeProps,
-// 			// 		x: e.target.x(),
-// 			// 		y: e.target.y(),
-// 			// 	});
-// 			// }}
-// 			// onTransformEnd={(e) => {
-// 			// 	// transformer is changing scale of the node
-// 			// 	// and NOT its width or height
-// 			// 	// but in the store we have only width and height
-// 			// 	// to match the data better we will reset scale on transform end
-// 			// 	const node = imageRef.current;
-// 			// 	const scaleX = node.scaleX();
-// 			// 	const scaleY = node.scaleY();
-
-// 			// 	// we will reset it back
-// 			// 	node.scaleX(1);
-// 			// 	node.scaleY(1);
-// 			// 	onChange({
-// 			// 		...shapeProps,
-// 			// 		x: node.x(),
-// 			// 		y: node.y(),
-// 			// 		// set minimal value
-// 			// 		width: Math.max(5, node.width() * scaleX),
-// 			// 		height: Math.max(node.height() * scaleY),
-// 			// 	});
-// 			// 	}}
-
-// 			/>
-// 		</>
-// 	)
-// }
 
 interface StickerData {
 	id: string,
@@ -362,52 +309,33 @@ const initialStickers: StickerData[] = [
 		editable: false,
 		url: "https://konvajs.org/assets/lion.png"
 	},
-	{
-		id: "img3",
-		x: 300,
-		y: 400,
-		rotation: 0,
-		scaleX: 1,
-		scaleY: 1,
-		editable: true,
-		url: "https://www.freeiconspng.com/img/44275"
-	}
 ];
 
 
 const StickerCanvas = () => {
-	// const stickerRefs = useRef(Array.from({length: initialStickers.length }, a => React.createRef()))
 	const [stickers, setStickers] = useState<StickerData[]>(initialStickers);
 	const [selectedStickerIds, setSelectedStickerIds] = useState<string[]>([]);
 	const transformerRef = useRef<any>();
 	const editLayerRef = useRef<any>();
-	const [image] = useImage('https://konvajs.org/assets/lion.png');
 
 	useEffect(() => {
-		console.log("got here")
-		console.log(transformerRef)
 		if (transformerRef) {
-			console.log(editLayerRef.current)
 			const stickerNodes = selectedStickerIds.map((id) => editLayerRef.current.findOne("#" + id))
 			transformerRef.current!.nodes(stickerNodes);
 			transformerRef.current!.getLayer().batchDraw();
-			// console.log(transformerRef)
 		}
 	}, [selectedStickerIds])
 
 
 	const checkDeselect = (e: Konva.KonvaEventObject<any>) => {
-		console.log("check deselct")
 		// deselect when clicked on empty area
 		const clickedOnEmpty = e.target._id === e.target.getStage()?._id;
 		if (clickedOnEmpty) {
 			setSelectedStickerIds([]);
-			// transformerRef.current!.nodes([]);
 		}
 	};
 
 	const onStickerSelect = (e: Konva.KonvaEventObject<any>) => {
-		console.log(e.evt.shiftKey)
 		const stickerId = e.target.id()
 		const isAlreadySelected = selectedStickerIds.indexOf(stickerId) >= 0;
 
@@ -418,39 +346,41 @@ const StickerCanvas = () => {
 		} else {
 			setSelectedStickerIds([stickerId])
 		}
-		console.log(selectedStickerIds)
 	}
 
-	// const setStickerRef = (el: any, index: number) => {
-	// 	stickerRefs.current[index] = el
-	// 	// setStickerRefs(newStickerRefs)
-	// 	console.log(stickerRefs)
-	// }
-
+	const applyStickerTransform = (newStickerData: StickerData) => {
+		const newStickers = stickers.slice();
+		for (let i = 0; i < newStickers.length; i++) {
+			if (newStickers[i].id === newStickerData.id) {
+				newStickers[i] = newStickerData
+			}
+		}
+		setStickers(newStickers);
+	}
 
 	return (
-
 		<Stage
 			width={window.innerWidth}
 			height={window.innerHeight}
 			onMouseDown={checkDeselect}
 			onTouchStart={checkDeselect}
+			style={{ backgroundColor: 'pink' }}
 		>
 			<Layer>
 				{stickers.filter((s) => !s.editable).map((sticker, i) =>
-					<Image
-						{...sticker}
-						// ref={el => setStickerRef(el, i)}
-						image={image}
-						stroke={'black'}
-						strokeWidth={5}
+					<Sticker
+						stickerData={sticker}
 					/>
 				)}
 			</Layer>
 			<Layer ref={editLayerRef}>
 
 				{stickers.filter((s) => s.editable).map((sticker, i) =>
-					<Sticker stickerData={sticker} onStickerSelect={onStickerSelect} />
+					<Sticker
+						stickerData={sticker}
+						onStickerSelect={onStickerSelect}
+						applyStickerTransform={applyStickerTransform}
+					/>
 				)}
 				<Transformer
 					ref={transformerRef}
