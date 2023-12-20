@@ -43,27 +43,34 @@ const initialStickers: SheetStickerInfo[] = [
 
 interface GallerySticker {
 	url: string
+	name: string
 }
 
 
 const galleryStickers: GallerySticker[] = [
 	{
-		url: "https://konvajs.org/assets/lion.png"
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
 	},
 	{
-		url: "https://konvajs.org/assets/lion.png"
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
 	},
 	{
-		url: "https://konvajs.org/assets/lion.png"
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
 	},
 	{
-		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+		name: "react"
 	},
 	{
-		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+		name: "react"
 	},
 	{
-		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+		name: "react"
 	}
 ]
 
@@ -136,17 +143,17 @@ const StickerCanvas = () => {
 
 	return (
 		<div className='grid grid-cols-4 fixed h-[calc(100vh-80px)] w-full top-20'>
-			<div className='h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
-				<div className='text-lg border-2 border-indigo-500'>
-					<p>Stickers</p>
-					<div className="grid grid-cols-2">
+			<div className='overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
+				<div className='overflow-scroll text-lg border-2 h-full border-indigo-500 p-2'>
+					<p className='fixed p-4'>Stickers</p>
+					<div className="mt-20 grid grid-cols-2 gap-2">
 						{galleryStickers.map((gallerySticker) =>
-							<img src={gallerySticker.url}>
+							<img src={gallerySticker.url} alt={gallerySticker.name + " sticker"}>
 							</img>
 						)}
 					</div>
 				</div>
-				<div className='text-lg border-2 border-indigo-500'>
+				<div className='text-lg border-2 h-full border-indigo-500'>
 					<p>Sticker Options</p>
 				</div>
 			</div>
