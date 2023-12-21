@@ -10,7 +10,7 @@ const App = () => {
 			<Router>
 				<Navbar />
 				<Routes>
-					<Route path="/" element={<StickerCanvas />}></Route>
+					<Route path="/" element={<>home</>}></Route>
 					<Route path="/stickerSheet" element={<StickerCanvas />}></Route>
 					<Route path="/stickerCreator" element={<StickerCreator />}></Route>
 				</Routes>

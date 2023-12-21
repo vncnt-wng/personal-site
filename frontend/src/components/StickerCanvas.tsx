@@ -164,16 +164,52 @@ const StickerCanvas = () => {
 		// TODO delete link element
 	}
 
+	const stickerIdExists = (id: string): boolean => {
+		return stickers.findIndex((sticker) => sticker.id === id) >= 0;
+	}
+
+	const addStickerToArea = (gallerySticker: GallerySticker) => {
+		// TODO figure out how to do sticker names/ids in the canvas
+		let i = 0
+		let newId = gallerySticker.name.slice();
+		let idExists = stickerIdExists(newId)
+		while (idExists) {
+			newId = gallerySticker.name + i
+			i += 1
+			idExists = stickerIdExists(newId)
+		}
+		const newCanvasSticker: SheetStickerInfo = {
+			id: newId,
+			x: 200,
+			y: 200,
+			rotation: 0,
+			scaleX: 1,
+			scaleY: 1,
+			url: gallerySticker.url,
+			editable: true
+		}
+		setStickers([...stickers, newCanvasSticker])
+		console.log(stickers)
+	}
+
+	const removeStickerFromArea = (id: string) => {
+		if (selectedStickerIds[0] === id) {
+			setSelectedStickerIds([])
+		}
+		setStickers(stickers.filter((sticker) => sticker.id !== id))
+	}
+
 	return (
 		<div className='grid grid-cols-4 fixed h-[calc(100vh-80px)] w-full top-20'>
 			<div className='overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
 				<div className='overflow-scroll text-lg border-2 h-full border-indigo-500 p-2'>
 					<p className='fixed p-4'>Stickers</p>
-					<div className="mt-20 grid grid-cols-3 gap-2">
-						{galleryStickers.map((gallerySticker) =>
+					<div className="mt-20 grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+						{galleryStickers.map((gallerySticker, i) =>
 							<img
 								src={gallerySticker.url} alt={gallerySticker.name + " sticker"}
-							// onClick={ }
+								onClick={e => addStickerToArea(gallerySticker)}
+								key={i}
 							>
 							</img>
 						)}
@@ -182,10 +218,22 @@ const StickerCanvas = () => {
 				<div className='text-lg border-2 h-full border-indigo-500'>
 					<p>Sticker Options</p>
 					{selectedStickerIds.length === 0 ?
-						<p>Please select a sticker</p>
+						<p>Please click on a sticker</p>
 						: selectedStickerIds.length > 1 ?
 							<p>Cannot change options for multiple stickers at once</p>
-							: <p>options</p>}
+							: <div className='flex flex-col p-4 gap-2'>
+								<button
+									className='m-w-0 flex w-min px-3 py-1 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-lg'
+									onClick={e => removeStickerFromArea(selectedStickerIds[0])}
+								>
+									<i className="ri-delete-bin-line text-sm"></i>
+									<p className="whitespace-nowrap text-sm">Remove Sticker</p>
+								</button>
+								<div className='flex gap-2'>
+									<p className='text-sm'>Enable Sticker Border:</p> <input type="checkbox" />
+								</div>
+							</div>
+					}
 				</div>
 			</div>
 			<div
@@ -195,7 +243,7 @@ const StickerCanvas = () => {
 				<div className="fixed h-30 flex flex-col justify-start gap-2 p-2 z-50">
 					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
 						<i className="ri-save-line text-xl"></i>
-						<p className="hidden group-hover:block over whitespace-nowrap">Save sheet</p>
+						<p className="hidden group-hover:block whitespace-nowrap">Save sheet</p>
 
 					</button>
 					<button
@@ -203,7 +251,13 @@ const StickerCanvas = () => {
 						onClick={handleExport}
 					>
 						<i className="ri-export-line text-xl"></i>
-						<p className="hidden group-hover:block">Export</p>
+						<p className="hidden group-hover:block whitespace-nowrap">Export</p>
+					</button>
+					<button
+						className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
+					>
+						<i className="ri-delete-bin-line text-xl"></i>
+						<p className="hidden group-hover:block whitespace-nowrap">Remove Sticker</p>
 					</button>
 				</div>
 				<Stage
@@ -218,18 +272,20 @@ const StickerCanvas = () => {
 						{stickers.filter((s) => !s.editable).map((sticker, i) =>
 							<Sticker
 								stickerData={sticker}
+								key={i}
 							/>
 						)}
 					</Layer>
 					<Layer ref={editLayerRef}>
-
-						{stickers.filter((s) => s.editable).map((sticker, i) =>
-							<Sticker
+						{stickers.filter((s) => s.editable).map((sticker, i) => {
+							console.log(sticker);
+							return <Sticker
 								stickerData={sticker}
 								onStickerSelect={onStickerSelect}
 								applyStickerTransform={applyStickerTransform}
+								key={i}
 							/>
-						)}
+						})}
 						<Transformer
 							ref={transformerRef}
 						/>
