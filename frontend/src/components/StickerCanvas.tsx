@@ -96,7 +96,7 @@ const StickerCanvas = () => {
 	const editLayerRef = useRef<any>();
 
 	const stageContainerRef = useRef() as React.MutableRefObject<HTMLDivElement>;
-	const stageRef = useRef(null);
+	const stageRef = useRef() as React.MutableRefObject<Konva.Stage>;
 	const [stageWidth, setStageWidth] = useState<number>(0);
 	const [stageHeight, setStageHeight] = useState<number>(0);
 
@@ -153,6 +153,17 @@ const StickerCanvas = () => {
 		setStickers(newStickers);
 	}
 
+	const handleExport = (e: any) => {
+		const dataURL = stageRef.current.toDataURL({ pixelRatio: 1 });
+		const link = document.createElement('a');
+		link.download = 'sticker-sheet.png';
+		link.href = dataURL;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		// TODO delete link element
+	}
+
 	return (
 		<div className='grid grid-cols-4 fixed h-[calc(100vh-80px)] w-full top-20'>
 			<div className='overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
@@ -170,6 +181,11 @@ const StickerCanvas = () => {
 				</div>
 				<div className='text-lg border-2 h-full border-indigo-500'>
 					<p>Sticker Options</p>
+					{selectedStickerIds.length === 0 ?
+						<p>Please select a sticker</p>
+						: selectedStickerIds.length > 1 ?
+							<p>Cannot change options for multiple stickers at once</p>
+							: <p>options</p>}
 				</div>
 			</div>
 			<div
@@ -182,7 +198,10 @@ const StickerCanvas = () => {
 						<p className="hidden group-hover:block over whitespace-nowrap">Save sheet</p>
 
 					</button>
-					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
+					<button
+						className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'
+						onClick={handleExport}
+					>
 						<i className="ri-export-line text-xl"></i>
 						<p className="hidden group-hover:block">Export</p>
 					</button>
