@@ -4,7 +4,7 @@ import Konva from 'konva';
 import { useEffect, useRef, useState } from 'react';
 import Sticker, { SheetStickerInfo } from './Sticker';
 import "../App.css";
-
+import 'remixicon/fonts/remixicon.css'
 
 const initialStickers: SheetStickerInfo[] = [
 	{
@@ -71,7 +71,19 @@ const galleryStickers: GallerySticker[] = [
 	{
 		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
 		name: "react"
-	}
+	},
+	{
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
+	},
+	{
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
+	},
+	{
+		url: "https://konvajs.org/assets/lion.png",
+		name: "lion"
+	},
 ]
 
 
@@ -146,9 +158,12 @@ const StickerCanvas = () => {
 			<div className='overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
 				<div className='overflow-scroll text-lg border-2 h-full border-indigo-500 p-2'>
 					<p className='fixed p-4'>Stickers</p>
-					<div className="mt-20 grid grid-cols-2 gap-2">
+					<div className="mt-20 grid grid-cols-3 gap-2">
 						{galleryStickers.map((gallerySticker) =>
-							<img src={gallerySticker.url} alt={gallerySticker.name + " sticker"}>
+							<img
+								src={gallerySticker.url} alt={gallerySticker.name + " sticker"}
+							// onClick={ }
+							>
 							</img>
 						)}
 					</div>
@@ -161,12 +176,23 @@ const StickerCanvas = () => {
 				className='h-full w-full col-span-3 box-border border-pink-400 border-4'
 				ref={stageContainerRef}
 			>
+				<div className="fixed h-30 flex flex-col justify-start gap-2 p-2 z-50">
+					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
+						<i className="ri-save-line text-xl"></i>
+						<p className="hidden group-hover:block over whitespace-nowrap">Save sheet</p>
+
+					</button>
+					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
+						<i className="ri-export-line text-xl"></i>
+						<p className="hidden group-hover:block">Export</p>
+					</button>
+				</div>
 				<Stage
 					width={stageWidth}
 					height={stageHeight}
 					onMouseDown={checkDeselect}
 					onTouchStart={checkDeselect}
-					style={{ backgroundColor: 'pink' }}
+					style={{ backgroundColor: "pink" }}
 					ref={stageRef}
 				>
 					<Layer>
