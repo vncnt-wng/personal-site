@@ -15,7 +15,9 @@ const initialStickers: SheetStickerInfo[] = [
 		scaleX: 1,
 		scaleY: 1,
 		editable: true,
-		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+		url: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+		stickerBorderEnabled: true,
+		stickerBorderWidth: 4
 	},
 	{
 		id: "img2",
@@ -25,7 +27,9 @@ const initialStickers: SheetStickerInfo[] = [
 		scaleX: 1,
 		scaleY: 1,
 		editable: true,
-		url: "https://konvajs.org/assets/lion.png"
+		url: "https://konvajs.org/assets/lion.png",
+		stickerBorderEnabled: true,
+		stickerBorderWidth: 3
 	},
 	{
 		id: "img3",
@@ -35,7 +39,9 @@ const initialStickers: SheetStickerInfo[] = [
 		scaleX: 1,
 		scaleY: 1,
 		editable: false,
-		url: "https://konvajs.org/assets/lion.png"
+		url: "https://konvajs.org/assets/lion.png",
+		stickerBorderEnabled: true,
+		stickerBorderWidth: 2
 	},
 ];
 
@@ -186,7 +192,8 @@ const StickerCanvas = () => {
 			scaleX: 1,
 			scaleY: 1,
 			url: gallerySticker.url,
-			editable: true
+			editable: true,
+			stickerBorderEnabled: true
 		}
 		setStickers([...stickers, newCanvasSticker])
 		console.log(stickers)
@@ -197,6 +204,47 @@ const StickerCanvas = () => {
 			setSelectedStickerIds([])
 		}
 		setStickers(stickers.filter((sticker) => sticker.id !== id))
+	}
+
+	// TODO refactor following functions to generic getters/setters taking in property name
+
+	const stickerBorderEnabledForId = (id: string): boolean => {
+		for (let i = 0; i < stickers.length; i++) {
+			if (stickers[i].id === id) {
+				return stickers[i].stickerBorderEnabled;
+			}
+		}
+		return false;
+	}
+
+	const stickerBorderWidthForId = (id: string): number | undefined => {
+		for (let i = 0; i < stickers.length; i++) {
+			if (stickers[i].id === id) {
+				return stickers[i].stickerBorderWidth;
+			}
+		}
+	}
+
+
+	const toggleStickerBorderEnabledForId = (id: string) => {
+		const newStickers = stickers.slice();
+		for (let i = 0; i < newStickers.length; i++) {
+			if (newStickers[i].id === id) {
+				newStickers[i].stickerBorderEnabled = !newStickers[i].stickerBorderEnabled;
+			}
+		}
+		setStickers(newStickers);
+	}
+
+
+	const setStickerBorderWidthForId = (id: string, newWidth: number) => {
+		const newStickers = stickers.slice();
+		for (let i = 0; i < newStickers.length; i++) {
+			if (newStickers[i].id === id) {
+				newStickers[i].stickerBorderWidth = newWidth;
+			}
+		}
+		setStickers(newStickers);
 	}
 
 	return (
@@ -230,8 +278,25 @@ const StickerCanvas = () => {
 									<p className="whitespace-nowrap text-sm">Remove Sticker</p>
 								</button>
 								<div className='flex gap-2'>
-									<p className='text-sm'>Enable Sticker Border:</p> <input type="checkbox" />
+									<p className='text-sm'>Enable sticker border:</p>
+									<input
+										type="checkbox"
+										checked={stickerBorderEnabledForId(selectedStickerIds[0])}
+										onChange={e => toggleStickerBorderEnabledForId(selectedStickerIds[0])}
+									/>
 								</div>
+								{stickerBorderEnabledForId(selectedStickerIds[0]) ?
+									<div className='flex gap-2'>
+										<p className='text-sm'>Sticker border width:</p>
+										<input
+											type="range"
+											min={"2"}
+											max={"15"}
+											value={stickerBorderWidthForId(selectedStickerIds[0]) ?? 5}
+											onChange={e => setStickerBorderWidthForId(selectedStickerIds[0], parseInt(e.target.value))}
+										/>
+									</div> : <></>}
+
 							</div>
 					}
 				</div>
@@ -278,7 +343,6 @@ const StickerCanvas = () => {
 					</Layer>
 					<Layer ref={editLayerRef}>
 						{stickers.filter((s) => s.editable).map((sticker, i) => {
-							console.log(sticker);
 							return <Sticker
 								stickerData={sticker}
 								onStickerSelect={onStickerSelect}

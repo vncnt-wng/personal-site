@@ -12,7 +12,9 @@ export interface SheetStickerInfo {
 	scaleX: number,
 	scaleY: number,
 	editable: boolean,
-	url: string
+	url: string,
+	stickerBorderEnabled: boolean,
+	stickerBorderWidth?: number,
 }
 
 interface StickerProps {
@@ -117,14 +119,14 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 
 		tempCanvas.getContext('2d')?.putImageData(imageData, 0, 0);
 		removeTransparency(tempCanvas);
-		const innerBorder = getSmoothedColouredShadow(canvas, tempCanvas, 4, "black")
+		const innerBorder = getSmoothedColouredShadow(canvas, tempCanvas, stickerData.stickerBorderWidth! * 0.8, "black")
 
 		canvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
 		tempCanvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
 		tempCanvas.getContext('2d')?.putImageData(imageData, 0, 0);
 		removeTransparency(tempCanvas);
 
-		const outerBorder = getSmoothedColouredShadow(canvas, tempCanvas, 10, "white")
+		const outerBorder = getSmoothedColouredShadow(canvas, tempCanvas, stickerData.stickerBorderWidth! * 2, "white")
 
 		canvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
 		tempCanvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
@@ -246,7 +248,7 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 				{...stickerData}
 				ref={imageRef}
 				image={image}
-				filters={[stickerBorder]}
+				filters={stickerData.stickerBorderEnabled ? [stickerBorder] : undefined}
 				draggable
 				onClick={onStickerSelect}
 				onTap={onStickerSelect}
