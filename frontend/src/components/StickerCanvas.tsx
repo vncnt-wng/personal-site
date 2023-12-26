@@ -120,8 +120,10 @@ const StickerCanvas = () => {
 	}, []);
 
 	useEffect(() => {
+		console.log("triggered add to transformer for " + selectedStickerIds[0])
 		if (transformerRef) {
 			const stickerNodes = selectedStickerIds.map((id) => editLayerRef.current.findOne("#" + id))
+			console.log(stickerNodes)
 			transformerRef.current!.nodes(stickerNodes);
 			transformerRef.current!.getLayer().batchDraw();
 		}
@@ -193,9 +195,11 @@ const StickerCanvas = () => {
 			scaleY: 1,
 			url: gallerySticker.url,
 			editable: true,
-			stickerBorderEnabled: true
+			stickerBorderEnabled: true,
+			stickerBorderWidth: 5
 		}
 		setStickers([...stickers, newCanvasSticker])
+		setSelectedStickerIds([newId]);
 		console.log(stickers)
 	}
 
@@ -249,10 +253,14 @@ const StickerCanvas = () => {
 
 	return (
 		<div className='grid grid-cols-4 fixed h-[calc(100vh-80px)] w-full top-20'>
-			<div className='overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-500 border-4 grid grid-rows-2'>
-				<div className='overflow-scroll text-lg border-2 h-full border-indigo-500 p-2'>
-					<p className='fixed p-4'>Stickers</p>
-					<div className="mt-20 grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+			<div className='w-full overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-600 border-4 grid grid-rows-2 grid-cols col-span-1'>
+				<div className='flex flex-col w-full overflow-scroll border-2 h-full border-indigo-600 text-lg'>
+					<div className='flex justify-between w-full p-4 bg-indigo-300 border-4 border-indigo-500'>
+						<p className=''>Stickers</p>
+						<div className='text-sm mt-auto mb-auto'><p>options</p></div>
+					</div>
+
+					<div className="overflow-scroll grid md:grid-cols-2 xl:grid-cols-3 gap-2">
 						{galleryStickers.map((gallerySticker, i) =>
 							<img
 								src={gallerySticker.url} alt={gallerySticker.name + " sticker"}
@@ -263,15 +271,17 @@ const StickerCanvas = () => {
 						)}
 					</div>
 				</div>
-				<div className='text-lg border-2 h-full border-indigo-500'>
-					<p>Sticker Options</p>
+				<div className='flex flex-col w-full overflow-scroll border-2 h-full border-indigo-600'>
+					<div className='flex justify-between w-full p-4 bg-indigo-300 border-4 border-indigo-500'>
+						<p className=''>Sticker Options</p>
+					</div>
 					{selectedStickerIds.length === 0 ?
-						<p>Please click on a sticker</p>
+						<p className='p-4'>Please click on a sticker</p>
 						: selectedStickerIds.length > 1 ?
-							<p>Cannot change options for multiple stickers at once</p>
+							<p className='p-4'>Cannot change options for multiple stickers at once</p>
 							: <div className='flex flex-col p-4 gap-2'>
 								<button
-									className='m-w-0 flex w-min px-3 py-1 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-lg'
+									className='m-w-0 flex w-min p-3 py-1 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-lg'
 									onClick={e => removeStickerFromArea(selectedStickerIds[0])}
 								>
 									<i className="ri-delete-bin-line text-sm"></i>

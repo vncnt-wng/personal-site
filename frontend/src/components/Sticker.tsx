@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Image } from 'react-konva';
 import useImage from 'use-image';
+import Konva from "konva"
 
 
 
@@ -76,7 +77,7 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 		const tempImageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
 
 		const SMOOTH_MIN_THRESHOLD = 3;
-		var SMOOTH_MAX_THRESHOLD = 5;
+		const SMOOTH_MAX_THRESHOLD = 20;
 
 		let val, hasValue;
 
@@ -242,7 +243,7 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 				{...stickerData}
 				ref={imageRef}
 				image={image}
-				filters={[stickerBorder]}
+				filters={[stickerBorder, Konva.Filters.Blur]}
 			/> :
 			<Image
 				{...stickerData}
