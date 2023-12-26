@@ -271,7 +271,7 @@ const StickerCanvas = () => {
 						)}
 					</div>
 				</div>
-				<div className='flex flex-col w-full overflow-scroll border-2 h-full border-indigo-600'>
+				<div className='flex flex-col w-full overflow-scroll border-2 text-lg h-full border-indigo-600'>
 					<div className='flex justify-between w-full p-4 bg-indigo-300 border-4 border-indigo-500'>
 						<p className=''>Sticker Options</p>
 					</div>
@@ -318,7 +318,7 @@ const StickerCanvas = () => {
 				<div className="fixed h-30 flex flex-col justify-start gap-2 p-2 z-50">
 					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
 						<i className="ri-save-line text-xl"></i>
-						<p className="hidden group-hover:block whitespace-nowrap">Save sheet</p>
+						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Save sheet</p>
 
 					</button>
 					<button
@@ -326,13 +326,13 @@ const StickerCanvas = () => {
 						onClick={handleExport}
 					>
 						<i className="ri-export-line text-xl"></i>
-						<p className="hidden group-hover:block whitespace-nowrap">Export</p>
+						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Export</p>
 					</button>
 					<button
 						className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
 					>
 						<i className="ri-delete-bin-line text-xl"></i>
-						<p className="hidden group-hover:block whitespace-nowrap">Remove Sticker</p>
+						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Remove Sticker</p>
 					</button>
 				</div>
 				<Stage

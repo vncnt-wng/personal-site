@@ -55,14 +55,21 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 	}
 
 	const getSmoothedColouredShadow = (
+		imageData: ImageData,
 		canvas: HTMLCanvasElement,
 		tempCanvas: HTMLCanvasElement,
 		shadowSize: number,
 		shadowColour: string,
 		filled: boolean = true
 	) => {
+		// Clear canvases and write imageData to tempCanvas
+		const ctx = canvas.getContext('2d')!;
+		const tempCtx = tempCanvas.getContext('2d')!;
+		ctx.clearRect(0, 0, imageData.width, imageData.height)
+		tempCtx.clearRect(0, 0, imageData.width, imageData.height)
+		tempCtx.putImageData(imageData, 0, 0);
+		removeTransparency(tempCanvas);
 
-		var ctx = canvas.getContext('2d')!;
 
 		// 3. we will use shadow as border
 		// so we just need apply shadow on the original image
@@ -77,7 +84,7 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 		const tempImageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
 
 		const SMOOTH_MIN_THRESHOLD = 3;
-		const SMOOTH_MAX_THRESHOLD = 20;
+		const SMOOTH_MAX_THRESHOLD = 10;
 
 		let val, hasValue;
 
@@ -118,108 +125,17 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 		tempCanvas.width = imageData.width;
 		tempCanvas.height = imageData.height;
 
-		tempCanvas.getContext('2d')?.putImageData(imageData, 0, 0);
-		removeTransparency(tempCanvas);
-		const innerBorder = getSmoothedColouredShadow(canvas, tempCanvas, stickerData.stickerBorderWidth! * 0.8, "black")
+		let imageWithBorder = getSmoothedColouredShadow(imageData, canvas, tempCanvas, stickerData.stickerBorderWidth! * 0.8, "black")
+		imageWithBorder = getSmoothedColouredShadow(imageWithBorder, canvas, tempCanvas, stickerData.stickerBorderWidth! * 1.2, "white")
+		imageWithBorder = getSmoothedColouredShadow(imageWithBorder, canvas, tempCanvas, 2, "grey", false)
 
-		canvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
-		tempCanvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
-		tempCanvas.getContext('2d')?.putImageData(imageData, 0, 0);
-		removeTransparency(tempCanvas);
-
-		const outerBorder = getSmoothedColouredShadow(canvas, tempCanvas, stickerData.stickerBorderWidth! * 2, "white")
-
-		canvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
-		tempCanvas.getContext('2d')?.clearRect(0, 0, imageData.width, imageData.height)
-		tempCanvas.getContext('2d')?.putImageData(outerBorder, 0, 0);
-		removeTransparency(tempCanvas);
-		const outerBorderWithDropShadow = getSmoothedColouredShadow(canvas, tempCanvas, 2, "grey", false)
-
-		for (let i = 3; i < imageData.data.length; i += 1) {
-			imageData.data[i] = innerBorder.data[i]
+		for (let i = 0; i < imageData.data.length; i += 1) {
+			imageData.data[i] = imageWithBorder.data[i]
 		}
 
-		for (var i = 3; i < imageData.data.length; i += 4) {
-			if (imageData.data[i] !== 0) {
-				continue;
-			} else if (innerBorder.data[i] !== 0) {
-				imageData.data[i] = innerBorder.data[i]
-				imageData.data[i - 1] = innerBorder.data[i - 1]
-				imageData.data[i - 2] = innerBorder.data[i - 1]
-				imageData.data[i - 3] = innerBorder.data[i - 1]
-			} else if (outerBorderWithDropShadow.data[i] !== 0) {
-				imageData.data[i] = outerBorderWithDropShadow.data[i]
-				imageData.data[i - 1] = outerBorderWithDropShadow.data[i - 1]
-				imageData.data[i - 2] = outerBorderWithDropShadow.data[i - 1]
-				imageData.data[i - 3] = outerBorderWithDropShadow.data[i - 1]
-			}
-		}
-
-
-		// draw resulted image(original + shadow without opacity) into canvas
-
-		// ctx?.putImageData(imageData, 0, 0);
-
-
-		// // then fill whole image with color (after that shadow is colored)
-		// ctx?.save();
-		// ctx!.globalCompositeOperation = 'source-in';
-		// ctx!.fillStyle = color;
-		// ctx?.fillRect(0, 0, canvas.width, canvas.height);
-		// ctx?.restore();
-
-		// // then we need to copy colored shadow into original imageData
-		// var newImageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-
-		// var indexesToProcess = [];
-		// for (var i = 3; i < nPixels; i += 4) {
-		// 	var hasTransparentOnTop =
-		// 		imageData.data[i - imageData.width * 4 * offset] === 0;
-		// 	var hasTransparentOnTopRight =
-		// 		imageData.data[i - (imageData.width * 4 + 4) * offset] === 0;
-		// 	var hasTransparentOnTopLeft =
-		// 		imageData.data[i - (imageData.width * 4 - 4) * offset] === 0;
-		// 	var hasTransparentOnRight = imageData.data[i + 4 * offset] === 0;
-		// 	var hasTransparentOnLeft = imageData.data[i - 4 * offset] === 0;
-		// 	var hasTransparentOnBottom =
-		// 		imageData.data[i + imageData.width * 4 * offset] === 0;
-		// 	var hasTransparentOnBottomRight =
-		// 		imageData.data[i + (imageData.width * 4 + 4) * offset] === 0;
-		// 	var hasTransparentOnBottomLeft =
-		// 		imageData.data[i + (imageData.width * 4 - 4) * offset] === 0;
-		// 	var hasTransparentAround =
-		// 		hasTransparentOnTop ||
-		// 		hasTransparentOnRight ||
-		// 		hasTransparentOnLeft ||
-		// 		hasTransparentOnBottom ||
-		// 		hasTransparentOnTopRight ||
-		// 		hasTransparentOnTopLeft ||
-		// 		hasTransparentOnBottomRight ||
-		// 		hasTransparentOnBottomLeft;
-
-		// 	// if pixel presented in original image - skip it
-		// 	// because we need to change only shadow area
-		// 	if (
-		// 		imageData.data[i] === 255 ||
-		// 		(imageData.data[i] && !hasTransparentAround)
-		// 	) {
-		// 		continue;
-		// 	}
-		// 	if (!newImageData?.data[i]) {
-		// 		// skip transparent pixels
-		// 		continue;
-		// 	}
-		// 	indexesToProcess.push(i);
-		// }
-
-		// for (var index = 0; index < indexesToProcess.length; index += 1) {
-		// 	var i = indexesToProcess[index];
-
+		// Interpolate between original transparent and new 
+		// for (let i = 3; i < imageData.data.length; i += 4) {
 		// 	var alpha = imageData.data[i] / 255;
-
-		// 	if (alpha > 0 && alpha < 1) {
-		// 		var aa = 1 + 1;
-		// 	}
 		// 	imageData.data[i] = newImageData!.data[i];
 		// 	imageData.data[i - 1] =
 		// 		newImageData!.data[i - 1] * (1 - alpha) +
@@ -230,10 +146,6 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 		// 	imageData.data[i - 3] =
 		// 		newImageData!.data[i - 3] * (1 - alpha) +
 		// 		imageData.data[i - 3] * alpha;
-
-		// 	if (newImageData!.data[i] < 255 && alpha > 0) {
-		// 		var bb = 1 + 1;
-		// 	}
 		// }
 	}
 
