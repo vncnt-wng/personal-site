@@ -203,11 +203,10 @@ const StickerCanvas = () => {
 		console.log(stickers)
 	}
 
-	const removeStickerFromArea = (id: string) => {
-		if (selectedStickerIds[0] === id) {
-			setSelectedStickerIds([])
-		}
-		setStickers(stickers.filter((sticker) => sticker.id !== id))
+	const removeSelectedStickersFromArea = () => {
+		setStickers(stickers.filter((sticker) => selectedStickerIds.find((id) => sticker.id === id) === undefined))
+		setSelectedStickerIds([])
+
 	}
 
 	// TODO refactor following functions to generic getters/setters taking in property name
@@ -277,16 +276,19 @@ const StickerCanvas = () => {
 					</div>
 					{selectedStickerIds.length === 0 ?
 						<p className='p-4'>Please click on a sticker</p>
-						: selectedStickerIds.length > 1 ?
-							<p className='p-4'>Cannot change options for multiple stickers at once</p>
-							: <div className='flex flex-col p-4 gap-2'>
-								<button
-									className='m-w-0 flex w-min p-3 py-1 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-lg'
-									onClick={e => removeStickerFromArea(selectedStickerIds[0])}
-								>
-									<i className="ri-delete-bin-line text-sm"></i>
-									<p className="whitespace-nowrap text-sm">Remove Sticker</p>
-								</button>
+						: <></>}
+					<div className='flex flex-col p-4 gap-2'>
+						{selectedStickerIds.length >= 1 ?
+							<button
+								className='m-w-0 flex w-min p-3 py-1 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-lg'
+								onClick={e => removeSelectedStickersFromArea()}
+							>
+								<i className="ri-delete-bin-line text-sm"></i>
+								<p className="whitespace-nowrap text-sm">Remove Sticker</p>
+							</button>
+							: <></>}
+						{selectedStickerIds.length === 1 ?
+							<>
 								<div className='flex gap-2'>
 									<p className='text-sm'>Enable sticker border:</p>
 									<input
@@ -305,10 +307,9 @@ const StickerCanvas = () => {
 											value={stickerBorderWidthForId(selectedStickerIds[0]) ?? 5}
 											onChange={e => setStickerBorderWidthForId(selectedStickerIds[0], parseInt(e.target.value))}
 										/>
-									</div> : <></>}
-
-							</div>
-					}
+									</div> : <></>} </>
+							: <></>}
+					</div>
 				</div>
 			</div>
 			<div
@@ -328,12 +329,15 @@ const StickerCanvas = () => {
 						<i className="ri-export-line text-xl"></i>
 						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Export</p>
 					</button>
-					<button
-						className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
-					>
-						<i className="ri-delete-bin-line text-xl"></i>
-						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Remove Sticker</p>
-					</button>
+					{selectedStickerIds.length > 0 ?
+						<button
+							className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
+							onClick={(e) => removeSelectedStickersFromArea()}
+						>
+							<i className="ri-delete-bin-line text-xl"></i>
+							<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Remove Sticker</p>
+						</button>
+						: <></>}
 				</div>
 				<Stage
 					width={stageWidth}
@@ -357,6 +361,8 @@ const StickerCanvas = () => {
 								stickerData={sticker}
 								onStickerSelect={onStickerSelect}
 								applyStickerTransform={applyStickerTransform}
+								selectedStickerIds={selectedStickerIds}
+								setSelectedStickerIds={setSelectedStickerIds}
 								key={i}
 							/>
 						})}

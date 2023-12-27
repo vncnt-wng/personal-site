@@ -21,10 +21,12 @@ export interface SheetStickerInfo {
 interface StickerProps {
 	stickerData: SheetStickerInfo,
 	onStickerSelect?: (el: any) => void,
-	applyStickerTransform?: (stickerData: SheetStickerInfo) => void
+	applyStickerTransform?: (stickerData: SheetStickerInfo) => void,
+	selectedStickerIds?: string[],
+	setSelectedStickerIds?: (selectedStickerIds: string[]) => void
 }
 
-const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: StickerProps) => {
+const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform, selectedStickerIds, setSelectedStickerIds }: StickerProps) => {
 	const imageRef = useRef<any>(null);
 	const [image] = useImage(stickerData.url, "anonymous");
 
@@ -165,6 +167,12 @@ const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform }: Sticke
 				draggable
 				onClick={onStickerSelect}
 				onTap={onStickerSelect}
+				onDragStart={(e) => {
+					// We change selected stickers to the dragged sticker when the dragged sticker is not in the selected
+					if (selectedStickerIds!.findIndex((stickerId) => stickerId === stickerData.id) === -1) {
+						setSelectedStickerIds!([stickerData.id])
+					}
+				}}
 				onDragEnd={(e) => {
 					applyStickerTransform!({
 						...stickerData,
