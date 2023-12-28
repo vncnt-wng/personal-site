@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
+      - run: cd frontend
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
@@ -20,9 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependancies 
-        run: |
-          cd frontend
-          npm install
+        run: npm ci
 
       - name: Build Frontend 
         run: npm run build --if-present
