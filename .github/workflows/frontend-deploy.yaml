@@ -3,7 +3,8 @@ name: Frontend Build
 on:
   push:
     branches:
-      - [master, cicd]
+      - master
+      - cicd
 
 jobs:
   build:
