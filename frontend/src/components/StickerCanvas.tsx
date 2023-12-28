@@ -4,7 +4,7 @@ import Konva from 'konva';
 import { useEffect, useRef, useState, useContext } from 'react';
 import Sticker from './Sticker';
 import { GallerySticker, StickerCanvasContextType } from '../@types/context';
-import 'remixicon/fonts/remixicon.css'
+import { RiSaveLine, RiExportLine, RiDeleteBinLine } from "@remixicon/react";
 import { StickerCanvasContext } from './context/StickerCanvasContext';
 
 
@@ -140,24 +140,24 @@ const StickerCanvas = () => {
 				ref={stageContainerRef}
 			>
 				<div className="fixed h-30 flex flex-col justify-start gap-2 p-2 z-50">
-					<button className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
-						<i className="ri-save-line text-xl"></i>
+					<button className='m-w-0 group flex w-min p-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'>
+						<RiSaveLine className='text-lg' />
 						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Save sheet</p>
 
 					</button>
 					<button
-						className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'
+						className='m-w-0 group flex w-min p-2 gap-1 justify-start align-start bg-blue-300 border-2 border-blue-400 shadow-md rounded-full'
 						onClick={handleExport}
 					>
-						<i className="ri-export-line text-xl"></i>
+						<RiExportLine className='text-lg' />
 						<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Export</p>
 					</button>
 					{selectedStickerIds.length > 0 ?
 						<button
-							className='m-w-0 group flex w-min px-3 py-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
+							className='m-w-0 group flex w-min p-2 gap-1 justify-start align-start bg-red-400 border-2 border-red-500 shadow-md rounded-full'
 							onClick={(e) => removeSelectedStickersFromArea()}
 						>
-							<i className="ri-delete-bin-line text-xl"></i>
+							<RiDeleteBinLine className='text-lg' />
 							<p className="hidden group-hover:block whitespace-nowrap mt-auto mb-auto">Remove Sticker</p>
 						</button>
 						: <></>}
