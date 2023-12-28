@@ -1,32 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Image } from 'react-konva';
 import useImage from 'use-image';
 import Konva from "konva"
-
-
-
-export interface SheetStickerInfo {
-	id: string,
-	x: number,
-	y: number,
-	rotation: number,
-	scaleX: number,
-	scaleY: number,
-	editable: boolean,
-	url: string,
-	stickerBorderEnabled: boolean,
-	stickerBorderWidth?: number,
-}
+import { SheetStickerInfo, StickerCanvasContextType } from '../@types/context';
+import { StickerCanvasContext } from './context/StickerCanvasContext';
 
 interface StickerProps {
 	stickerData: SheetStickerInfo,
-	onStickerSelect?: (el: any) => void,
-	applyStickerTransform?: (stickerData: SheetStickerInfo) => void,
-	selectedStickerIds?: string[],
-	setSelectedStickerIds?: (selectedStickerIds: string[]) => void
 }
 
-const Sticker = ({ stickerData, onStickerSelect, applyStickerTransform, selectedStickerIds, setSelectedStickerIds }: StickerProps) => {
+const Sticker = ({ stickerData }: StickerProps) => {
+	const {
+		onStickerSelect,
+		applyStickerTransform,
+		selectedStickerIds,
+		setSelectedStickerIds,
+	} = useContext(StickerCanvasContext) as StickerCanvasContextType
+
 	const imageRef = useRef<any>(null);
 	const [image] = useImage(stickerData.url, "anonymous");
 

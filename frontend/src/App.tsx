@@ -3,6 +3,7 @@ import './App.css';
 import StickerCanvas from './components/StickerCanvas';
 import StickerCreator from "./components/StickerCreator";
 import Navbar from './components/Navbar';
+import { StickerCanvasProvider } from "./components/context/StickerCanvasContext";
 
 const App = () => {
 	return (
@@ -11,7 +12,7 @@ const App = () => {
 				<Navbar />
 				<Routes>
 					<Route path="/" element={<>home</>}></Route>
-					<Route path="/stickerSheet" element={<StickerCanvas />}></Route>
+					<Route path="/stickerSheet" element={<StickerCanvasProvider><StickerCanvas /></StickerCanvasProvider>}></Route>
 					<Route path="/stickerCreator" element={<StickerCreator />}></Route>
 				</Routes>
 			</Router>
