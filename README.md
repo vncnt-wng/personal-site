@@ -4,4 +4,4 @@ A web app for creating stickers, sharing them with friends and putting stickers 
 
 Built with React + ?
 
-Deployed link: https://rococo-pika-a4ae23.netlify.app/stickerSheet 
+Deployed link: https://rococo-pika-a4ae23.netlify.app
