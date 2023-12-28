@@ -9,17 +9,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'frontend'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         
-      - run: cd frontend
+      # - run: cd frontend
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install Dependancies 
         run: npm ci
