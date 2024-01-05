@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model StickerSheet {
+  id           Int            @id @default(autoincrement())
+  SheetSticker SheetSticker[]
+}
+
+model SheetSticker {
+  id                   Int          @id @default(autoincrement())
+  x                    Int          @default(0)
+  y                    Int          @default(0)
+  rotation             Float        @default(0.0)
+  scaleX               Float        @default(1.0)
+  scaleY               Float        @default(1.0)
+  editable             Boolean      @default(true)
+  url                  String
+  stickerBorderEnabled Boolean      @default(true)
+  stickerBorderWidth   Int          @default(3)
+  sheet                StickerSheet @relation(fields: [sheetId], references: [id])
+  sheetId              Int
+}
