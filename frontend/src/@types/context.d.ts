@@ -17,6 +17,19 @@ export interface GallerySticker {
   name: string
 }
 
+export interface Position {
+  x: number,
+  y: number,
+}
+
+export interface Colour {
+  [index: string]: string | number,
+  r: number,
+  g: number,
+  b: number,
+  a: number
+}
+
 export type StickerCanvasContextType = {
   galleryStickers: GallerySticker[],
   stickers: SheetStickerInfo[],
