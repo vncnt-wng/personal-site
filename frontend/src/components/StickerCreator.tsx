@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import { Set } from "typescript"
 
 interface Position {
 	x: number,
@@ -30,6 +29,7 @@ const StickerCreator = () => {
 	const brushTypes = ["brush", "fill"]
 	const [brushType, setBrushType] = useState<string>("brush")
 
+	const [name, setName] = useState<string>("unnamed")
 
 	useEffect(() => {
 		const canvas = cursorCanvasRef.current!
@@ -80,6 +80,7 @@ const StickerCreator = () => {
 		colourString += Math.abs(colour.a * 100) + "%)"
 		console.log(colourString)
 		editorContext.current!.strokeStyle = colourString
+		editorContext.current!.fillStyle = colourString
 		cursorContext.current!.fillStyle = colourString
 	}, [colour])
 
@@ -194,6 +195,24 @@ const StickerCreator = () => {
 		setColour(newColour)
 	}
 
+	const handleExport = (e: any) => {
+		const dataURL = editorCanvasRef.current!.toDataURL("img/png");
+		const link = document.createElement('a');
+		link.download = name + '.png';
+		link.href = dataURL;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}
+
+	const handleSave = () => {
+
+	}
+
+	const onNameFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setName(e.target.value)
+	}
+
 	return (
 		<div className="h-full w-full grid grid-cols-2" style={{ backgroundColor: "pink" }}>
 			<div className="col-span-1 flex justify-end">
@@ -211,22 +230,49 @@ const StickerCreator = () => {
 					ref={cursorCanvasRef}
 				></canvas>
 			</div>
-			<div className="col-span-1 flex justify-center">
-				<select name="brushSelect" id="brushSelect" onChange={onBrushSelectChange}>
+			<div className="col-span-1 flex flex-col justify-start align-middle gap-4 p-4 w-2/3">
+				<input
+					value={name}
+					className="rounded-lg px-3 py-1 shadow-md"
+					onChange={onNameFieldChange}></input>
+				<button
+					className="bg-red-400 px-3 py-1 box-border border-2 border-red-500 rounded-lg shadow-md"
+					onClick={() => {
+						editorContext.current?.clearRect(0, 0, WIDTH, HEIGHT)
+					}}
+				>Clear canvas</button>
+				<select
+					name="brushSelect"
+					id="brushSelect"
+					onChange={onBrushSelectChange}
+					className="bg-purple-300 px-3 py-1 box-border border-2 border-purple-400 rounded-lg shadow-md"
+				>
 					{brushTypes.map((brush, i) =>
 						<option value={brush} key={i}>{brush}</option>
 					)}
 				</select>
-				<button onClick={() => {
-					editorContext.current?.clearRect(0, 0, WIDTH, HEIGHT)
-				}}>Clear canvas</button>
-				<span className="box-border border-4 w-10 h-10" style={{ backgroundColor: getColourStyleString(colour) }}></span>
-				<form className="">
-					<input name="r" type="range" min={0} max={255} value={colour.r} onChange={e => onColourChange(e)} />
-					<input name="g" type="range" min={0} max={255} value={colour.g} onChange={e => onColourChange(e)} />
-					<input name="b" type="range" min={0} max={255} value={colour.b} onChange={e => onColourChange(e)} />
-					<input name="a" type="range" min={0} max={1} value={colour.a} step={0.01} onChange={e => onColourChange(e)} />
-				</form>
+
+				<div className="flex flex-col gap-2 py-2">
+					<div className="flex flex-row justify-center">
+						<div className="m-w-0 flex-shrink-0 flex-grow-0 box-border border-4 rounded-full w-24 h-24 shadow-lg" style={{ backgroundColor: getColourStyleString(colour) }}></div>
+					</div>
+					<form className="flex flex-col px-4">
+						{["r", "g", "b"].map((col) =>
+							<div className="grid grid-cols-9">
+								<p className="col-span-2">{col}: {colour[col]}</p>
+								<input className="col-span-7" name={col} type="range" min={0} max={255} value={colour[col]} onChange={e => onColourChange(e)} />
+							</div>
+						)}
+						<div className="grid grid-cols-9">
+							<p className="col-span-2">a: {colour["a"]}</p>
+							<input className="col-span-7" name="a" type="range" min={0} max={1} value={colour.a} step={0.01} onChange={e => onColourChange(e)} />
+						</div>
+					</form>
+				</div>
+				<div className="flex flex-row gap-2 justify-center">
+					<button className="bg-purple-300 px-4 py-1 box-border border-2 border-purple-400 rounded-lg shadow-md" onClick={handleExport}>Export</button>
+					<button className="bg-purple-300 px-4 py-1 box-border border-2 border-purple-400 rounded-lg shadow-md" onClick={handleSave}>Save</button>
+				</div>
 			</div>
 		</div>
 	)

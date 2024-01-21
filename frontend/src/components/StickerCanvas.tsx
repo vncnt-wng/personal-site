@@ -69,7 +69,6 @@ const StickerCanvas = () => {
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
-		// TODO delete link element
 	}
 
 
