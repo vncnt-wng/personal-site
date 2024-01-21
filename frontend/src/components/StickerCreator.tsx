@@ -33,10 +33,10 @@ const StickerCreator = () => {
 
 	useEffect(() => {
 		const canvas = cursorCanvasRef.current!
-		editorContext.current = canvas.getContext("2d")
-		canvas.addEventListener("mousemove", onMouseMove)
+		canvas.addEventListener("mousedown", onMouseDown)
 		canvas.addEventListener("mousedown", onMouseDown)
 		canvas.addEventListener("mouseup", onMouseUp)
+		canvas.addEventListener("mouseout", onMouseUp)
 		canvas.addEventListener("click", onClick)
 
 		cursorContext.current = cursorCanvasRef.current!.getContext("2d")
@@ -46,9 +46,23 @@ const StickerCreator = () => {
 			canvas.removeEventListener('mousemove', onMouseMove);
 			canvas.removeEventListener('mousedown', onMouseDown);
 			canvas.removeEventListener('mouseUp', onMouseUp);
+			canvas.removeEventListener("mouseout", onMouseUp)
 			canvas.removeEventListener("click", onClick)
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+
+
+	useEffect(() => {
+		const canvas = cursorCanvasRef.current!
+		canvas.addEventListener("mousemove", onMouseMove)
+		canvas.addEventListener("click", onClick)
+		return () => {
+			canvas.removeEventListener('mousemove', onMouseMove);
+			canvas.removeEventListener("click", onClick)
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [brushSize])
 
 	useEffect(() => {
 		const canvas = cursorCanvasRef.current!
@@ -56,20 +70,36 @@ const StickerCreator = () => {
 		return () => {
 			canvas.removeEventListener("click", onClick)
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [brushType, colour])
 
 	useEffect(() => {
 		if (mouseDown && brushType === "brush" && prevBrushPos !== null) {
 			const editorCtx = editorContext.current!
+			const distance = Math.pow(Math.pow(prevBrushPos.x - canvasPos.x, 2) + Math.pow(prevBrushPos.y - canvasPos.y, 2), 1 / 2)
 			editorCtx.beginPath();
-			editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
-			editorCtx.lineTo(canvasPos.x, canvasPos.y)
-			// editorCtx.strokeStyle = "black"
-			editorCtx.lineWidth = brushSize
-			editorCtx.stroke()
+			if (distance < brushSize / 2) {
+				editorCtx.arc(canvasPos.x, canvasPos.y, brushSize / 2, 0, 2 * Math.PI)
+				editorCtx.fill()
+			} else {
+				editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
+				editorCtx.lineTo(canvasPos.x, canvasPos.y)
+				// editorCtx.strokeStyle = "black"
+				editorCtx.lineWidth = brushSize
+				editorCtx.stroke()
+			}
 			editorCtx.closePath()
 			setPrevBrushPos(canvasPos)
+			// editorCtx.beginPath();
+			// editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
+			// editorCtx.lineTo(canvasPos.x, canvasPos.y)
+			// // editorCtx.strokeStyle = "black"
+			// editorCtx.lineWidth = brushSize
+			// editorCtx.stroke()
+			// editorCtx.closePath()
+			// setPrevBrushPos(canvasPos)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [canvasPos])
 
 	useEffect(() => {
@@ -266,6 +296,10 @@ const StickerCreator = () => {
 						<div className="grid grid-cols-9">
 							<p className="col-span-2">a: {colour["a"]}</p>
 							<input className="col-span-7" name="a" type="range" min={0} max={1} value={colour.a} step={0.01} onChange={e => onColourChange(e)} />
+						</div>
+						<div className="grid grid-cols-5 pt-3">
+							<p className="col-span-2">Brush Size: {brushSize}</p>
+							<input className="col-span-3" name="brushSize" type="range" min={1} max={40} value={brushSize} onChange={e => setBrushSize(Number(e.target.value))} />
 						</div>
 					</form>
 				</div>
