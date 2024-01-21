@@ -6,6 +6,13 @@ interface Position {
 	y: number,
 }
 
+interface Colour {
+	[index: string]: string | number,
+	r: number,
+	g: number,
+	b: number,
+	a: number
+}
 
 const StickerCreator = () => {
 	const editorCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -15,7 +22,7 @@ const StickerCreator = () => {
 	const [prevBrushPos, setPrevBrushPos] = useState<Position | null>({ x: 0, y: 0 })
 	const [canvasPos, setCanvasPos] = useState<Position>({ x: 0, y: 0 })
 	const [brushSize, setBrushSize] = useState<number>(4)
-	const [color, setColor] = useState(null)
+	const [colour, setColour] = useState<Colour>({ r: 0, g: 0, b: 0, a: 1.0 })
 	const [mouseDown, setMouseDown] = useState<boolean>(false)
 	const WIDTH = 400
 	const HEIGHT = 400
@@ -58,7 +65,7 @@ const StickerCreator = () => {
 			return false
 		}
 		const index = getImageDataIndex(x, y)
-		return imageData.data[index + 3] !== 255
+		return imageData.data[index + 3] !== 255 || (imageData.data[index] === 255 && imageData.data[index + 1] === 255 && imageData.data[index + 2] === 255)
 	}
 
 	const onClick = (e: MouseEvent) => {
@@ -79,10 +86,10 @@ const StickerCreator = () => {
 				const curr = nodes.shift()!
 				const pixelIndex = getImageDataIndex(curr[0], curr[1])
 				if (imageData.data[pixelIndex + 3] === 0) {
-					imageData.data[pixelIndex] = 0
-					imageData.data[pixelIndex + 1] = 0
-					imageData.data[pixelIndex + 2] = 0
-					imageData.data[pixelIndex + 3] = 255
+					imageData.data[pixelIndex] = colour.r
+					imageData.data[pixelIndex + 1] = colour.g
+					imageData.data[pixelIndex + 2] = colour.b
+					imageData.data[pixelIndex + 3] = colour.a * 255
 				}
 
 				if (pixelIsTransparent(curr[0] + 1, curr[1], imageData) && !seen.has((curr[0] + 1) + (curr[1]) * HEIGHT)) {
@@ -102,8 +109,6 @@ const StickerCreator = () => {
 					seen.add((curr[0]) + (curr[1] - 1) * HEIGHT)
 				}
 			}
-			console.log(nodes.length)
-			console.log(seen.size)
 			editorCtx.putImageData(imageData, 0, 0)
 		}
 	}
@@ -115,7 +120,6 @@ const StickerCreator = () => {
 		canvas.addEventListener("mousedown", onMouseDown)
 		canvas.addEventListener("mouseup", onMouseUp)
 		canvas.addEventListener("click", onClick)
-
 
 		cursorContext.current = cursorCanvasRef.current!.getContext("2d")
 		editorContext.current = editorCanvasRef.current!.getContext("2d")
@@ -142,7 +146,7 @@ const StickerCreator = () => {
 			editorCtx.beginPath();
 			editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
 			editorCtx.lineTo(canvasPos.x, canvasPos.y)
-			editorCtx.strokeStyle = "black"
+			// editorCtx.strokeStyle = "black"
 			editorCtx.lineWidth = brushSize
 			editorCtx.stroke()
 			editorCtx.closePath()
@@ -150,31 +154,64 @@ const StickerCreator = () => {
 		}
 	}, [canvasPos])
 
+	useEffect(() => {
+		let colourString = "#"
+		colourString += Math.abs(colour.r).toString(16).padStart(2, "0")
+		colourString += Math.abs(colour.g).toString(16).padStart(2, "0")
+		colourString += Math.abs(colour.b).toString(16).padStart(2, "0")
+		console.log(colourString)
+		editorContext.current!.strokeStyle = colourString
+		cursorContext.current!.fillStyle = colourString
+	}, [colour])
+
 	const onBrushSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setBrushType(e.target.value)
 	}
 
+	const getColourStyleString = (colour: Colour) => {
+		return "rgb(" + colour.r + "," + colour.g + "," + colour.b + "," + colour.a + ")"
+	}
+
+	const onColourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const newColour = { ...colour }
+		newColour[e.target.name] = e.target.value
+		setColour(newColour)
+	}
+
 	return (
-		<div className="h-full w-full" style={{ backgroundColor: "pink" }}>
-			<canvas
-				height={HEIGHT}
-				width={WIDTH}
-				className="box-border border-4 border-indigo-600 bg-white fixed"
-				ref={editorCanvasRef}
-			>
-			</canvas>
-			<canvas
-				height={HEIGHT}
-				width={WIDTH}
-				className="box-border border-4 border-indigo-600 fixed bg-transparent"
-				ref={cursorCanvasRef}
-			></canvas>
-			<div>
+		<div className="h-full w-full grid grid-cols-2" style={{ backgroundColor: "pink" }}>
+			<div className="col-span-1 flex justify-end">
+				<canvas
+					height={HEIGHT}
+					width={WIDTH}
+					className="box-border border-4 border-indigo-600 bg-white absolute"
+					ref={editorCanvasRef}
+				>
+				</canvas>
+				<canvas
+					height={HEIGHT}
+					width={WIDTH}
+					className="box-border border-4 border-indigo-600 bg-transparent absolute"
+					ref={cursorCanvasRef}
+				></canvas>
+			</div>
+			<div className="col-span-1 flex justify-center">
 				<select name="brushSelect" id="brushSelect" onChange={onBrushSelectChange}>
 					{brushTypes.map((brush, i) =>
 						<option value={brush} key={i}>{brush}</option>
 					)}
 				</select>
+				<button onClick={() => {
+					editorContext.current?.clearRect(0, 0, WIDTH, HEIGHT)
+				}}>Clear canvas</button>
+				<span className="box-border border-4  w-10 h-10" style={{ backgroundColor: getColourStyleString(colour) }}></span>
+				<form className="">
+					<input name="r" type="range" min={0} max={255} value={colour.r} onChange={e => onColourChange(e)} />
+					<input name="g" type="range" min={0} max={255} value={colour.g} onChange={e => onColourChange(e)} />
+					<input name="b" type="range" min={0} max={255} value={colour.b} onChange={e => onColourChange(e)} />
+					<input name="a" type="range" min={0} max={1} value={colour.a} step={0.01} onChange={e => onColourChange(e)} />
+				</form>
+
 			</div>
 		</div>
 	)
