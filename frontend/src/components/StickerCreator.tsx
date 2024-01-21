@@ -30,6 +30,59 @@ const StickerCreator = () => {
 	const brushTypes = ["brush", "fill"]
 	const [brushType, setBrushType] = useState<string>("brush")
 
+
+	useEffect(() => {
+		const canvas = cursorCanvasRef.current!
+		editorContext.current = canvas.getContext("2d")
+		canvas.addEventListener("mousemove", onMouseMove)
+		canvas.addEventListener("mousedown", onMouseDown)
+		canvas.addEventListener("mouseup", onMouseUp)
+		canvas.addEventListener("click", onClick)
+
+		cursorContext.current = cursorCanvasRef.current!.getContext("2d")
+		editorContext.current = editorCanvasRef.current!.getContext("2d")
+
+		return () => {
+			canvas.removeEventListener('mousemove', onMouseMove);
+			canvas.removeEventListener('mousedown', onMouseDown);
+			canvas.removeEventListener('mouseUp', onMouseUp);
+			canvas.removeEventListener("click", onClick)
+		};
+	}, [])
+
+	useEffect(() => {
+		const canvas = cursorCanvasRef.current!
+		canvas.addEventListener("click", onClick)
+		return () => {
+			canvas.removeEventListener("click", onClick)
+		};
+	}, [brushType, colour])
+
+	useEffect(() => {
+		if (mouseDown && brushType === "brush" && prevBrushPos !== null) {
+			const editorCtx = editorContext.current!
+			editorCtx.beginPath();
+			editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
+			editorCtx.lineTo(canvasPos.x, canvasPos.y)
+			// editorCtx.strokeStyle = "black"
+			editorCtx.lineWidth = brushSize
+			editorCtx.stroke()
+			editorCtx.closePath()
+			setPrevBrushPos(canvasPos)
+		}
+	}, [canvasPos])
+
+	useEffect(() => {
+		let colourString = "rgb("
+		colourString += colour.r + " "
+		colourString += colour.g + " "
+		colourString += colour.b + " / "
+		colourString += Math.abs(colour.a * 100) + "%)"
+		console.log(colourString)
+		editorContext.current!.strokeStyle = colourString
+		cursorContext.current!.fillStyle = colourString
+	}, [colour])
+
 	const onMouseMove = (e: MouseEvent) => {
 		const x = e.offsetX
 		const y = e.offsetY
@@ -60,21 +113,31 @@ const StickerCreator = () => {
 
 	const getImageDataIndex = (x: number, y: number) => (x + y * WIDTH) * 4
 
-	const pixelIsTransparent = (x: number, y: number, imageData: ImageData) => {
+	const shouldFillPixel = (x: number, y: number, initialColour: Uint8ClampedArray, imageData: ImageData) => {
 		if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
 			return false
 		}
 		const index = getImageDataIndex(x, y)
-		return imageData.data[index + 3] !== 255 || (imageData.data[index] === 255 && imageData.data[index + 1] === 255 && imageData.data[index + 2] === 255)
+		// console.log(initialColour)
+		// console.log(imageData.data.slice(index, index + 4))
+
+		return (
+			initialColour[0] === imageData.data[index] &&
+			initialColour[1] === imageData.data[index + 1] &&
+			initialColour[2] === imageData.data[index + 2] &&
+			initialColour[3] === imageData.data[index + 3]
+		)
 	}
 
 	const onClick = (e: MouseEvent) => {
 		const editorCtx = editorContext.current!
+
 		if (brushType === "brush") {
 			editorCtx.beginPath();
 			editorCtx.arc(e.offsetX, e.offsetY, brushSize / 2, 0, 2 * Math.PI)
 			editorCtx.fill()
 			editorCtx.closePath()
+
 		} else if (brushType === "fill") {
 			console.log("fill")
 			const initialPos = [e.offsetX, e.offsetY]
@@ -82,87 +145,40 @@ const StickerCreator = () => {
 			seen.add(e.offsetX + e.offsetY * WIDTH)
 			const nodes: number[][] = [initialPos]
 			const imageData = editorCtx.getImageData(0, 0, WIDTH, HEIGHT)
+			const startIndex = getImageDataIndex(initialPos[0], initialPos[1])
+			const initialColour = imageData.data.slice(startIndex, startIndex + 4)
+			console.log(initialColour)
 			while (nodes.length > 0) {
 				const curr = nodes.shift()!
 				const pixelIndex = getImageDataIndex(curr[0], curr[1])
-				if (imageData.data[pixelIndex + 3] === 0) {
-					imageData.data[pixelIndex] = colour.r
-					imageData.data[pixelIndex + 1] = colour.g
-					imageData.data[pixelIndex + 2] = colour.b
-					imageData.data[pixelIndex + 3] = colour.a * 255
-				}
+				imageData.data[pixelIndex] = colour.r
+				imageData.data[pixelIndex + 1] = colour.g
+				imageData.data[pixelIndex + 2] = colour.b
+				imageData.data[pixelIndex + 3] = colour.a * 255
 
-				if (pixelIsTransparent(curr[0] + 1, curr[1], imageData) && !seen.has((curr[0] + 1) + (curr[1]) * HEIGHT)) {
-					nodes.push([curr[0] + 1, curr[1]])
-					seen.add((curr[0] + 1) + (curr[1]) * HEIGHT)
-				}
-				if (pixelIsTransparent(curr[0], curr[1] + 1, imageData) && !seen.has((curr[0]) + (curr[1] + 1) * HEIGHT)) {
-					nodes.push([curr[0], curr[1] + 1])
-					seen.add((curr[0]) + (curr[1] + 1) * HEIGHT)
-				}
-				if (pixelIsTransparent(curr[0] - 1, curr[1], imageData) && !seen.has((curr[0] - 1) + (curr[1]) * HEIGHT)) {
-					nodes.push([curr[0] - 1, curr[1]])
-					seen.add((curr[0] - 1) + (curr[1]) * HEIGHT)
-				}
-				if (pixelIsTransparent(curr[0], curr[1] - 1, imageData) && !seen.has((curr[0]) + (curr[1] - 1) * HEIGHT)) {
-					nodes.push([curr[0], curr[1] - 1])
-					seen.add((curr[0]) + (curr[1] - 1) * HEIGHT)
-				}
+				checkNeighbouringPixel(curr, 1, 0, nodes, seen, initialColour, imageData)
+				checkNeighbouringPixel(curr, 0, 1, nodes, seen, initialColour, imageData)
+				checkNeighbouringPixel(curr, -1, 0, nodes, seen, initialColour, imageData)
+				checkNeighbouringPixel(curr, 0, -1, nodes, seen, initialColour, imageData)
 			}
 			editorCtx.putImageData(imageData, 0, 0)
 		}
 	}
 
-	useEffect(() => {
-		const canvas = cursorCanvasRef.current!
-		editorContext.current = canvas.getContext("2d")
-		canvas.addEventListener("mousemove", onMouseMove)
-		canvas.addEventListener("mousedown", onMouseDown)
-		canvas.addEventListener("mouseup", onMouseUp)
-		canvas.addEventListener("click", onClick)
-
-		cursorContext.current = cursorCanvasRef.current!.getContext("2d")
-		editorContext.current = editorCanvasRef.current!.getContext("2d")
-
-		return () => {
-			canvas.removeEventListener('mousemove', onMouseMove);
-			canvas.removeEventListener('mousedown', onMouseDown);
-			canvas.removeEventListener('mouseUp', onMouseUp);
-			canvas.removeEventListener("click", onClick)
-		};
-	}, [])
-
-	useEffect(() => {
-		const canvas = cursorCanvasRef.current!
-		canvas.addEventListener("click", onClick)
-		return () => {
-			canvas.removeEventListener("click", onClick)
-		};
-	}, [brushType])
-
-	useEffect(() => {
-		if (mouseDown && brushType === "brush" && prevBrushPos !== null) {
-			const editorCtx = editorContext.current!
-			editorCtx.beginPath();
-			editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
-			editorCtx.lineTo(canvasPos.x, canvasPos.y)
-			// editorCtx.strokeStyle = "black"
-			editorCtx.lineWidth = brushSize
-			editorCtx.stroke()
-			editorCtx.closePath()
-			setPrevBrushPos(canvasPos)
+	const checkNeighbouringPixel = (
+		currPos: number[],
+		dx: number,
+		dy: number,
+		nodes: number[][],
+		seen: Set<number>,
+		initialColour: Uint8ClampedArray,
+		imageData: ImageData
+	) => {
+		if (shouldFillPixel(currPos[0] + dx, currPos[1] + dy, initialColour, imageData) && !seen.has((currPos[0] + dx) + (currPos[1] + dy) * HEIGHT)) {
+			nodes.push([currPos[0] + dx, currPos[1] + dy])
+			seen.add((currPos[0] + dx) + (currPos[1] + dy) * HEIGHT)
 		}
-	}, [canvasPos])
-
-	useEffect(() => {
-		let colourString = "#"
-		colourString += Math.abs(colour.r).toString(16).padStart(2, "0")
-		colourString += Math.abs(colour.g).toString(16).padStart(2, "0")
-		colourString += Math.abs(colour.b).toString(16).padStart(2, "0")
-		console.log(colourString)
-		editorContext.current!.strokeStyle = colourString
-		cursorContext.current!.fillStyle = colourString
-	}, [colour])
+	}
 
 	const onBrushSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setBrushType(e.target.value)
@@ -204,14 +220,13 @@ const StickerCreator = () => {
 				<button onClick={() => {
 					editorContext.current?.clearRect(0, 0, WIDTH, HEIGHT)
 				}}>Clear canvas</button>
-				<span className="box-border border-4  w-10 h-10" style={{ backgroundColor: getColourStyleString(colour) }}></span>
+				<span className="box-border border-4 w-10 h-10" style={{ backgroundColor: getColourStyleString(colour) }}></span>
 				<form className="">
 					<input name="r" type="range" min={0} max={255} value={colour.r} onChange={e => onColourChange(e)} />
 					<input name="g" type="range" min={0} max={255} value={colour.g} onChange={e => onColourChange(e)} />
 					<input name="b" type="range" min={0} max={255} value={colour.b} onChange={e => onColourChange(e)} />
 					<input name="a" type="range" min={0} max={1} value={colour.a} step={0.01} onChange={e => onColourChange(e)} />
 				</form>
-
 			</div>
 		</div>
 	)
