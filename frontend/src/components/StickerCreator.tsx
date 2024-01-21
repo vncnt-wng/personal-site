@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { Set } from "typescript"
 
 interface Position {
 	x: number,
@@ -16,6 +17,8 @@ const StickerCreator = () => {
 	const [brushSize, setBrushSize] = useState<number>(4)
 	const [color, setColor] = useState(null)
 	const [mouseDown, setMouseDown] = useState<boolean>(false)
+	const WIDTH = 400
+	const HEIGHT = 400
 
 	const brushTypes = ["brush", "fill"]
 	const [brushType, setBrushType] = useState<string>("brush")
@@ -26,7 +29,7 @@ const StickerCreator = () => {
 
 		// Draw cursor
 		const cursorCtx = cursorContext.current!
-		cursorCtx.clearRect(0, 0, 400, 400)
+		cursorCtx.clearRect(0, 0, WIDTH, HEIGHT)
 		cursorCtx.beginPath();
 		cursorCtx.arc(x, y, brushSize / 2, 0, 2 * Math.PI)
 		cursorCtx.fill()
@@ -39,25 +42,69 @@ const StickerCreator = () => {
 	}
 
 	const onMouseDown = (e: MouseEvent) => {
-		console.log("down")
 		setMouseDown(true)
 		setPrevBrushPos({ x: e.offsetX, y: e.offsetY })
 	}
 
 	const onMouseUp = () => {
-		console.log("up")
 		setMouseDown(false)
 		setPrevBrushPos(null)
 	}
 
+	const getImageDataIndex = (x: number, y: number) => (x + y * WIDTH) * 4
+
+	const pixelIsTransparent = (x: number, y: number, imageData: ImageData) => {
+		if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+			return false
+		}
+		const index = getImageDataIndex(x, y)
+		return imageData.data[index + 3] !== 255
+	}
+
 	const onClick = (e: MouseEvent) => {
+		const editorCtx = editorContext.current!
 		if (brushType === "brush") {
-			const editorCtx = editorContext.current!
 			editorCtx.beginPath();
 			editorCtx.arc(e.offsetX, e.offsetY, brushSize / 2, 0, 2 * Math.PI)
 			editorCtx.fill()
 			editorCtx.closePath()
 		} else if (brushType === "fill") {
+			console.log("fill")
+			const initialPos = [e.offsetX, e.offsetY]
+			const seen: Set<number> = new Set<number>()
+			seen.add(e.offsetX + e.offsetY * WIDTH)
+			const nodes: number[][] = [initialPos]
+			const imageData = editorCtx.getImageData(0, 0, WIDTH, HEIGHT)
+			while (nodes.length > 0) {
+				const curr = nodes.shift()!
+				const pixelIndex = getImageDataIndex(curr[0], curr[1])
+				if (imageData.data[pixelIndex + 3] === 0) {
+					imageData.data[pixelIndex] = 0
+					imageData.data[pixelIndex + 1] = 0
+					imageData.data[pixelIndex + 2] = 0
+					imageData.data[pixelIndex + 3] = 255
+				}
+
+				if (pixelIsTransparent(curr[0] + 1, curr[1], imageData) && !seen.has((curr[0] + 1) + (curr[1]) * HEIGHT)) {
+					nodes.push([curr[0] + 1, curr[1]])
+					seen.add((curr[0] + 1) + (curr[1]) * HEIGHT)
+				}
+				if (pixelIsTransparent(curr[0], curr[1] + 1, imageData) && !seen.has((curr[0]) + (curr[1] + 1) * HEIGHT)) {
+					nodes.push([curr[0], curr[1] + 1])
+					seen.add((curr[0]) + (curr[1] + 1) * HEIGHT)
+				}
+				if (pixelIsTransparent(curr[0] - 1, curr[1], imageData) && !seen.has((curr[0] - 1) + (curr[1]) * HEIGHT)) {
+					nodes.push([curr[0] - 1, curr[1]])
+					seen.add((curr[0] - 1) + (curr[1]) * HEIGHT)
+				}
+				if (pixelIsTransparent(curr[0], curr[1] - 1, imageData) && !seen.has((curr[0]) + (curr[1] - 1) * HEIGHT)) {
+					nodes.push([curr[0], curr[1] - 1])
+					seen.add((curr[0]) + (curr[1] - 1) * HEIGHT)
+				}
+			}
+			console.log(nodes.length)
+			console.log(seen.size)
+			editorCtx.putImageData(imageData, 0, 0)
 		}
 	}
 
@@ -82,8 +129,14 @@ const StickerCreator = () => {
 	}, [])
 
 	useEffect(() => {
-		console.log(canvasPos)
-		console.log(mouseDown)
+		const canvas = cursorCanvasRef.current!
+		canvas.addEventListener("click", onClick)
+		return () => {
+			canvas.removeEventListener("click", onClick)
+		};
+	}, [brushType])
+
+	useEffect(() => {
 		if (mouseDown && brushType === "brush" && prevBrushPos !== null) {
 			const editorCtx = editorContext.current!
 			editorCtx.beginPath();
@@ -104,22 +157,22 @@ const StickerCreator = () => {
 	return (
 		<div className="h-full w-full" style={{ backgroundColor: "pink" }}>
 			<canvas
-				height={400}
-				width={400}
+				height={HEIGHT}
+				width={WIDTH}
 				className="box-border border-4 border-indigo-600 bg-white fixed"
 				ref={editorCanvasRef}
 			>
 			</canvas>
 			<canvas
-				height={400}
-				width={400}
+				height={HEIGHT}
+				width={WIDTH}
 				className="box-border border-4 border-indigo-600 fixed bg-transparent"
 				ref={cursorCanvasRef}
 			></canvas>
 			<div>
 				<select name="brushSelect" id="brushSelect" onChange={onBrushSelectChange}>
-					{brushTypes.map((brush) =>
-						<option value={brush}>{brush}</option>
+					{brushTypes.map((brush, i) =>
+						<option value={brush} key={i}>{brush}</option>
 					)}
 				</select>
 			</div>
