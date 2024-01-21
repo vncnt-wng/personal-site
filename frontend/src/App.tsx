@@ -10,11 +10,13 @@ const App = () => {
 		<div className="App">
 			<Router>
 				<Navbar />
-				<Routes>
-					<Route path="/" element={<>home</>}></Route>
-					<Route path="/stickerSheet" element={<StickerCanvasProvider><StickerCanvas /></StickerCanvasProvider>}></Route>
-					<Route path="/stickerCreator" element={<StickerCreator />}></Route>
-				</Routes>
+				<div className="fixed h-[calc(100vh-80px)] w-full top-20">
+					<Routes>
+						<Route path="/" element={<>home</>}></Route>
+						<Route path="/stickerSheet" element={<StickerCanvasProvider><StickerCanvas /></StickerCanvasProvider>}></Route>
+						<Route path="/stickerCreator" element={<StickerCreator />}></Route>
+					</Routes>
+				</div>
 			</Router>
 		</div>
 	);

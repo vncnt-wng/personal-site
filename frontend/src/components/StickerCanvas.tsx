@@ -74,7 +74,7 @@ const StickerCanvas = () => {
 
 
 	return (
-		<div className='grid grid-cols-4 fixed h-[calc(100vh-80px)] w-full top-20'>
+		<div className='grid grid-cols-4 w-full h-full'>
 			<div className='w-full overflow-scroll max-h-full h-full box-border bg-indigo-400 border-indigo-600 border-4 grid grid-rows-2 grid-cols col-span-1'>
 				<div className='flex flex-col w-full overflow-scroll border-2 h-full border-indigo-600 text-lg'>
 					<div className='flex justify-between w-full p-4 bg-indigo-300 border-4 border-indigo-500'>
