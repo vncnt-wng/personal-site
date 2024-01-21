@@ -60,31 +60,23 @@ const StickerCreatorCanvas = ({
 			canvas.removeEventListener("click", onClick)
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [brushSize])
+	}, [brushSize, brushType, colour])
 
-	useEffect(() => {
-		const canvas = cursorCanvasRef.current!
-		canvas.addEventListener("click", onClick)
-		return () => {
-			canvas.removeEventListener("click", onClick)
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [brushType, colour])
 
 	useEffect(() => {
 		if (mouseDown && brushType === "brush" && prevBrushPos !== null) {
 			const editorCtx = editorContext.current!
-			const distance = Math.pow(Math.pow(prevBrushPos.x - canvasPos.x, 2) + Math.pow(prevBrushPos.y - canvasPos.y, 2), 1 / 2)
+			// const distance = Math.pow(Math.pow(prevBrushPos.x - canvasPos.x, 2) + Math.pow(prevBrushPos.y - canvasPos.y, 2), 1 / 2)
 			editorCtx.beginPath();
-			if (distance < brushSize / 2) {
-				editorCtx.arc(canvasPos.x, canvasPos.y, brushSize / 2, 0, 2 * Math.PI)
-				editorCtx.fill()
-			} else {
-				editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
-				editorCtx.lineTo(canvasPos.x, canvasPos.y)
-				editorCtx.lineWidth = brushSize
-				editorCtx.stroke()
-			}
+			// if (distance < brushSize / 2) {
+			// 	editorCtx.arc(canvasPos.x, canvasPos.y, brushSize / 2, 0, 2 * Math.PI)
+			// 	editorCtx.fill()
+			// } else {
+			editorCtx.moveTo(prevBrushPos.x, prevBrushPos.y)
+			editorCtx.lineTo(canvasPos.x, canvasPos.y)
+			editorCtx.lineWidth = brushSize
+			editorCtx.stroke()
+			// }
 			editorCtx.closePath()
 			setPrevBrushPos(canvasPos)
 		}
