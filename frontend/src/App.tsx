@@ -1,6 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import './App.css';
-import StickerCanvas from './components/StickerCanvas';
+import StickerCanvas from './components/StickerCanvas/StickerCanvas';
 import StickerCreator from "./components/StickerCreator/StickerCreator";
 import Navbar from './components/Navbar';
 import { StickerCanvasProvider } from "./components/context/StickerCanvasContext";

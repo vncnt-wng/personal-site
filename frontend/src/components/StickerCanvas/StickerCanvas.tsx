@@ -3,9 +3,9 @@ import { Stage, Layer, Transformer } from 'react-konva';
 import Konva from 'konva';
 import { useEffect, useRef, useState, useContext } from 'react';
 import Sticker from './Sticker';
-import { GallerySticker, StickerCanvasContextType } from '../@types/context';
+import { GallerySticker, StickerCanvasContextType } from '../../@types/context';
 import { RiSaveLine, RiExportLine, RiDeleteBinLine } from "@remixicon/react";
-import { StickerCanvasContext } from './context/StickerCanvasContext';
+import { StickerCanvasContext } from '../context/StickerCanvasContext';
 
 
 const StickerCanvas = () => {

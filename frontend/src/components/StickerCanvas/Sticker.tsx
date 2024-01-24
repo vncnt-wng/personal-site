@@ -2,8 +2,8 @@ import { useContext, useEffect, useRef } from 'react';
 import { Image } from 'react-konva';
 import useImage from 'use-image';
 import Konva from "konva"
-import { SheetStickerInfo, StickerCanvasContextType } from '../@types/context';
-import { StickerCanvasContext } from './context/StickerCanvasContext';
+import { SheetStickerInfo, StickerCanvasContextType } from '../../@types/context';
+import { StickerCanvasContext } from '../context/StickerCanvasContext';
 
 interface StickerProps {
 	stickerData: SheetStickerInfo,
